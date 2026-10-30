@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Экономические игры</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="bg-mesh"></div>
+    <div class="bg-blobs">
+        <div class="blob blob-cyan"></div>
+        <div class="blob blob-orange"></div>
+        <div class="blob blob-purple"></div>
+        <div class="blob blob-blue"></div>
+    </div>
+
+    <button id="globalExitBtn" class="btn-exit hidden" onclick="confirmExit()">Выйти в меню</button>
+    <button id="globalPauseBtn" class="btn-pause hidden" onclick="togglePauseLottery()">Пауза</button>
+
+    <main id="screen-menu" class="screen active">
+        <div class="glass-card start-card">
+            <h1 class="title">Экономические игры</h1>
+            <p class="subtitle">Выберите режим для проведения занятия</p>
+            <div class="menu-grid">
+                <div class="menu-item" onclick="selectGame('lottery')"><h3>Экономическое лото</h3><p>Классическая викторина с выбором ячеек</p></div>
+                <div class="menu-item" onclick="selectGame('auction')"><h3>Аукцион</h3><p>Ставки на вопросы. Риск и стратегия</p></div>
+                <div class="menu-item" onclick="selectGame('logic')"><h3>Где логика?</h3><p>Найдите лишнее понятие</p></div>
+                <div class="menu-item" onclick="selectGame('blitz')"><h3>Блиц</h3><p>15 вопросов за 1 минуту 30 секунд</p></div>
+                <div class="menu-item" onclick="selectGame('myth')"><h3>Правда или Миф</h3><p>Оцените утверждение</p></div>
+            </div>
+            <button class="btn btn-secondary btn-full hidden" id="resumeBtn" onclick="resumeSession()" style="margin-top: 24px;">Продолжить прерванную игру</button>
+        </div>
+    </main>
+
+    <main id="screen-setup" class="screen">
+        <div class="glass-card setup-card">
+            <button class="btn-back" onclick="showScreen('screen-menu')">Назад</button>
+            <h2 id="setupTitle">Настройка</h2>
+            <div class="form-group">
+                <label for="teamCount">Количество команд</label>
+                <select id="teamCount" onchange="renderTeamInputs()">
+                    <option value="2">2 команды</option>
+                    <option value="3">3 команды</option>
+                    <option value="4">4 команды</option>
+                    <option value="5">5 команд</option>
+                    <option value="6">6 команд</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Названия команд</label>
+                <div id="teamInputs" class="teams-grid"></div>
+            </div>
+            <button class="btn btn-primary btn-full" onclick="startSelectedGame()">Начать игру</button>
+        </div>
+    </main>
+
+    <main id="screen-lottery" class="screen wide">
+        <header class="game-header glass-card">
+            <div class="turn-info"><span class="label">Ход команды:</span><span class="value" id="lottery-turn"></span></div>
+            <div class="scores" id="lottery-scores"></div>
+        </header>
+        <div class="board" id="lottery-board"></div>
+    </main>
+
+    <main id="screen-auction" class="screen">
+        <header class="game-header glass-card">
+            <div class="turn-info"><span class="label">Вопрос:</span><span class="value" id="auction-question-counter">1 / 8</span></div>
+            <div class="scores" id="auction-scores"></div>
+        </header>
+        <div class="glass-card auction-card">
+            <h3 class="question-text" id="auction-question">Текст вопроса</h3>
+            <div class="auction-bank">Банк команды: <span id="auction-current-team"></span></div>
+            <div class="auction-controls" id="auction-controls">
+                <input type="number" id="auction-bet" placeholder="Ваша ставка" min="1">
+                <button class="btn btn-primary" onclick="placeBet()">Сделать ставку</button>
+            </div>
+            <div class="options-list" id="auction-options" style="display:none; margin-top: 20px;"></div>
+        </div>
+    </main>
+
+    <main id="screen-logic" class="screen">
+        <header class="game-header glass-card">
+            <div class="turn-info"><span class="label">Ход команды:</span><span class="value" id="logic-turn"></span></div>
+            <div class="scores" id="logic-scores"></div>
+        </header>
+        <div class="glass-card logic-card">
+            <h3 class="question-text" id="logic-question">Найдите лишнее слово</h3>
+            <div class="options-list" id="logic-options"></div>
+        </div>
+    </main>
+
+    <main id="screen-blitz" class="screen">
+        <header class="game-header glass-card">
+            <div class="turn-info"><span class="label">Отвечает:</span><span class="value" id="blitz-turn"></span></div>
+            <div class="turn-info"><span class="label">Время:</span><span class="value timer-value" id="blitz-timer">01:30</span></div>
+            <div class="scores" id="blitz-scores"></div>
+        </header>
+        <div class="glass-card blitz-card">
+            <div class="progress-info" id="blitz-progress">Вопрос 1 из 15</div>
+            <h3 class="question-text" id="blitz-question">Вопрос</h3>
+            <div class="options-list" id="blitz-options"></div>
+        </div>
+    </main>
+
+    <main id="screen-myth" class="screen">
+        <header class="game-header glass-card">
+            <div class="turn-info"><span class="label">Ход команды:</span><span class="value" id="myth-turn"></span></div>
+            <div class="scores" id="myth-scores"></div>
+        </header>
+        <div class="glass-card myth-card">
+            <h3 class="question-text" id="myth-question">Утверждение</h3>
+            <div class="myth-buttons" id="myth-buttons">
+                <button class="btn myth-btn truth" onclick="answerMyth(true)">Правда</button>
+                <button class="btn myth-btn myth" onclick="answerMyth(false)">Миф</button>
+            </div>
+            <div id="myth-explanation" class="result-desc hidden"></div>
+            <button id="myth-next-btn" class="btn btn-primary hidden" onclick="nextMythQuestion()" style="margin-top: 20px;">Дальше</button>
+        </div>
+    </main>
+
+    <main id="screen-results" class="screen">
+        <div class="glass-card results-card">
+            <h2>Игра завершена</h2>
+            <div class="winner-banner" id="winnerText"></div>
+            <div class="table-wrapper">
+                <table class="results-table">
+                    <thead><tr><th>Место</th><th>Команда</th><th>Счёт</th></tr></thead>
+                    <tbody id="resultsBody"></tbody>
+                </table>
+            </div>
+            <button class="btn btn-secondary btn-full" onclick="clearSessionAndExit()">В главное меню</button>
+        </div>
+    </main>
+
+    <!-- МОДАЛКА ДЛЯ БЛИЦА: Предупреждение о смене команды -->
+    <div id="modal-blitz-warning" class="modal">
+        <div class="glass-card modal-content text-center warning-modal">
+            <h2 id="blitz-warning-title">Внимание!</h2>
+            <p class="result-desc" id="blitz-warning-text">Сейчас отвечает команда</p>
+            <button class="btn btn-primary btn-full" onclick="startBlitzForCurrentTeam()">Начать</button>
+        </div>
+    </div>
+
+    <!-- МОДАЛКИ ДЛЯ ЛОТО -->
+    <div id="modal-question" class="modal">
+        <div class="glass-card modal-content">
+            <div class="modal-header"><div class="timer" id="modalTimer">1:00</div></div>
+            <h3 class="question-text" id="modal-q-text"></h3>
+            <div class="options-list" id="modal-q-options"></div>
+        </div>
+    </div>
+    <div id="modal-result" class="modal">
+        <div class="glass-card modal-content text-center result-modal">
+            <div class="result-icon" id="modal-res-icon"></div>
+            <h3 id="modal-res-title"></h3>
+            <p class="result-desc" id="modal-res-desc"></p>
+            <button class="btn btn-primary btn-full" onclick="closeLotteryResult()">Продолжить</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
